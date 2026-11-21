@@ -1,832 +1,152 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MSN Admin | لوحة التحكم</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg: #0b0c10;
-      --card: #14161f;
-      --card-2: #1c1f2b;
-      --text: #f3f4f6;
-      --muted: #9ca3af;
-      --accent: #f5b921;
-      --accent-dark: #c8930b;
-      --danger: #ef4444;
-      --success: #22c55e;
-      --border: rgba(255, 255, 255, 0.09);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      line-height: 1.5;
-    }
-
-    .container {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-
-    .login-wrap {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-    }
-
-    .login-card {
-      width: 100%;
-      max-width: 410px;
-      border-color: rgba(245, 185, 33, 0.35);
-    }
-
-    h1, h2, h3 {
-      font-weight: 800;
-    }
-
-    .title-gold {
-      color: var(--accent);
-      margin-bottom: 14px;
-      font-size: 1.35rem;
-    }
-
-    label {
-      display: block;
-      font-size: 0.88rem;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      background: var(--card-2);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 11px 12px;
-      font-size: 0.95rem;
-      margin-bottom: 12px;
-      outline: none;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--accent);
-    }
-
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 11px 16px;
-      font-weight: 700;
-      font-size: 0.92rem;
-      cursor: pointer;
-      transition: 0.15s ease;
-    }
-
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .btn-gold {
-      background: var(--accent);
-      color: #111;
-      width: 100%;
-    }
-
-    .btn-gold:hover:not(:disabled) {
-      background: var(--accent-dark);
-    }
-
-    .btn-soft {
-      background: var(--card-2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.16);
-      color: #fca5a5;
-      border: 1px solid rgba(239, 68, 68, 0.35);
-    }
-
-    .btn-success {
-      background: rgba(34, 197, 94, 0.16);
-      color: #86efac;
-      border: 1px solid rgba(34, 197, 94, 0.35);
-    }
-
-    .msg-err {
-      color: #f87171;
-      font-size: 0.88rem;
-      margin-top: 10px;
-      min-height: 20px;
-    }
-
-    .msg-ok {
-      color: #4ade80;
-      font-size: 0.88rem;
-      margin-top: 8px;
-    }
-
-    .topbar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .topbar-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      margin-bottom: 18px;
-    }
-
-    .tab-btn {
-      background: var(--card);
-      color: var(--muted);
-      border: 1px solid var(--border);
-      white-space: nowrap;
-    }
-
-    .tab-btn.active {
-      background: var(--accent);
-      color: #111;
-      border-color: var(--accent);
-    }
-
-    .grid-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .stat-box {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px;
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
-
-    .stat-val {
-      font-size: 1.4rem;
-      font-weight: 800;
-      color: var(--accent);
-      margin-top: 4px;
-    }
-
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 16px;
-    }
-
-    .list-item {
-      background: var(--card-2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .row-between {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .item-meta {
-      color: var(--muted);
-      font-size: 0.84rem;
-    }
-
-    .thumb {
-      width: 64px;
-      height: 64px;
-      object-fit: cover;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #0d0f14;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#d4af37">
+<link rel="manifest" href="admin-manifest.json">
+<link rel="icon" href="icon-192.png">
+<title>MSN Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#070707;--card:#121212;--line:#2a2a2a;--g:#d4af37;--g2:#f3e5ab;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Tahoma,Arial,sans-serif}
+[hidden]{display:none!important}
+body{background:var(--bg);color:#fff;padding:calc(14px + env(safe-area-inset-top,0px)) 12px 40px}
+.c{max-width:600px;margin:0 auto 12px;background:var(--card);border:1px solid var(--g);border-radius:14px;padding:14px}
+h2{color:var(--g);font-size:16px;margin-bottom:10px}
+input,select,textarea{width:100%;padding:10px;margin-bottom:8px;background:#000;border:1px solid var(--line);color:#fff;border-radius:8px;font-size:14px}
+input[type=checkbox]{width:auto;margin-left:6px}
+label{display:block;font-size:12px;color:var(--g2);margin-bottom:3px}
+.b{width:100%;padding:12px;border:0;border-radius:8px;background:var(--g);color:#000;font-weight:700;font-size:14px}
+.b:disabled{opacity:.5}
+.d,.e{border:0;padding:6px 10px;border-radius:6px;font-size:12px;color:#fff;background:#7f1d1d}.e{background:#1e3a8a}
+.r{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.r span+span{display:block;margin-top:6px}
+.o{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px}
+.o a{color:var(--g2)}.o small{color:#9a9a9a;display:block}
+.st{display:flex;flex-wrap:wrap;font-size:13px}.st div{width:50%;padding:4px 0}.st b{color:var(--g2)}
+#m{text-align:center;font-weight:700;font-size:13px;margin:6px 0;min-height:18px}
+</style>
 </head>
 <body>
-
-  <!-- شاشة الدخول -->
-  <section id="loginView" class="login-wrap">
-    <div class="card login-card">
-      <h1 class="title-gold">دخول الأدمن ⚙️</h1>
-      <form id="loginForm">
-        <label for="emailInput">البريد الإلكتروني</label>
-        <input id="emailInput" type="email" value="malknamr5@gmail.com" required autocomplete="email" />
-
-        <label for="passwordInput">كلمة المرور</label>
-        <input id="passwordInput" type="password" placeholder="••••••••••" required autocomplete="current-password" />
-
-        <button id="loginBtn" type="submit" class="btn-gold">دخول</button>
-        <div id="loginMsg" class="msg-err"></div>
-      </form>
-    </div>
-  </section>
-
-  <!-- لوحة التحكم -->
-  <main id="dashboardView" class="container hidden">
-    <div class="topbar">
-      <div>
-        <h1 class="title-gold" style="margin-bottom: 2px;">MSN — لوحة إدارة المتجر</h1>
-        <div id="adminBadge" class="item-meta"></div>
-      </div>
-      <div class="topbar-actions">
-        <button id="refreshBtn" class="btn-soft">تحديث البيانات</button>
-        <button id="logoutBtn" class="btn-danger">تسجيل خروج</button>
-      </div>
-    </div>
-
-    <!-- إحصائيات سريعة -->
-    <div class="grid-stats">
-      <div class="stat-box">
-        <div class="stat-label">المنتجات</div>
-        <div id="countProducts" class="stat-val">0</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">الطلبات</div>
-        <div id="countOrders" class="stat-val">0</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">الإعلانات</div>
-        <div id="countAds" class="stat-val">0</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-label">التقييمات</div>
-        <div id="countReviews" class="stat-val">0</div>
-      </div>
-    </div>
-
-    <!-- التبويبات -->
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="products">المنتجات</button>
-      <button class="tab-btn" data-tab="orders">الطلبات</button>
-      <button class="tab-btn" data-tab="ads">الإعلانات</button>
-      <button class="tab-btn" data-tab="reviews">التقييمات</button>
-      <button class="tab-btn" data-tab="settings">الإعدادات والإحصائيات</button>
-    </div>
-
-    <!-- تبويب المنتجات -->
-    <section id="tab-products" class="tab-panel grid-2">
-      <div class="card">
-        <h2 style="margin-bottom: 12px;">إضافة منتج جديد</h2>
-        <form id="productForm">
-          <label for="prodName">اسم المنتج</label>
-          <input id="prodName" type="text" placeholder="مثال: MSN Boxy Hoodie" required />
-
-          <label for="prodPrice">السعر</label>
-          <input id="prodPrice" type="number" step="0.01" placeholder="مثال: 1250" required />
-
-          <label for="prodCategory">القسم / الفئة</label>
-          <input id="prodCategory" type="text" placeholder="مثال: Hoodies / Streetwear" />
-
-          <label for="prodDesc">الوصف</label>
-          <textarea id="prodDesc" rows="3" placeholder="تفاصيل الخامة والمقاسات..."></textarea>
-
-          <label for="prodImageFile">رفع صورة من الجهاز (Bucket: products)</label>
-          <input id="prodImageFile" type="file" accept="image/*" />
-
-          <label for="prodImageUrl">أو رابط صورة مباشر</label>
-          <input id="prodImageUrl" type="url" placeholder="https://..." />
-
-          <button id="addProductBtn" type="submit" class="btn-gold">حفظ المنتج</button>
-          <div id="productMsg" class="msg-ok"></div>
-        </form>
-      </div>
-
-      <div class="card">
-        <h2 style="margin-bottom: 12px;">المنتجات الحالية</h2>
-        <div id="productsList"></div>
-      </div>
-    </section>
-
-    <!-- تبويب الطلبات -->
-    <section id="tab-orders" class="tab-panel card hidden">
-      <h2 style="margin-bottom: 12px;">الطلبات الواردة</h2>
-      <div id="ordersList"></div>
-    </section>
-
-    <!-- تبويب الإعلانات -->
-    <section id="tab-ads" class="tab-panel grid-2 hidden">
-      <div class="card">
-        <h2 style="margin-bottom: 12px;">إضافة إعلان / بانر</h2>
-        <form id="adForm">
-          <label for="adTitle">عنوان الإعلان</label>
-          <input id="adTitle" type="text" placeholder="مثال: Drop 01 خصم 20%" required />
-
-          <label for="adImageFile">رفع صورة إعلان (اختياري)</label>
-          <input id="adImageFile" type="file" accept="image/*" />
-
-          <label for="adImageUrl">أو رابط صورة / نص إضافي</label>
-          <input id="adImageUrl" type="text" placeholder="https://... أو نص العرض" />
-
-          <button type="submit" class="btn-gold">نشر الإعلان</button>
-          <div id="adMsg" class="msg-ok"></div>
-        </form>
-      </div>
-
-      <div class="card">
-        <h2 style="margin-bottom: 12px;">الإعلانات الحالية</h2>
-        <div id="adsList"></div>
-      </div>
-    </section>
-
-    <!-- تبويب التقييمات -->
-    <section id="tab-reviews" class="tab-panel card hidden">
-      <h2 style="margin-bottom: 12px;">آراء وتقييمات العملاء</h2>
-      <div id="reviewsList"></div>
-    </section>
-
-    <!-- تبويب الإعدادات والإحصائيات -->
-    <section id="tab-settings" class="tab-panel grid-2 hidden">
-      <div class="card">
-        <h2 style="margin-bottom: 12px;">إعدادات المتجر (settings)</h2>
-        <div id="settingsList"></div>
-      </div>
-
-      <div class="card">
-        <h2 style="margin-bottom: 12px;">سجل الإحصائيات (stats)</h2>
-        <div id="statsList"></div>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    // تأكد من مطابقة رابط المشروع مع مشروعك صاحب المفتاح sb_publishable_aW865zUIF9UR2JhZ5agGCw_W817LVaQ
-    const SUPABASE_URL = "https://eymttxifulduddmdaryi.supabase.co";
-    const SUPABASE_ANON_KEY = "sb_publishable_aW865zUIF9UR2JhZ5agGCw_W817LVaQ";
-    const STORAGE_BUCKET = "products";
-
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const loginView = document.getElementById("loginView");
-    const dashboardView = document.getElementById("dashboardView");
-    const loginForm = document.getElementById("loginForm");
-    const loginBtn = document.getElementById("loginBtn");
-    const loginMsg = document.getElementById("loginMsg");
-    const adminBadge = document.getElementById("adminBadge");
-
-    function escapeHtml(val) {
-      return String(val ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-    }
-
-    function setErr(el, text) {
-      el.className = "msg-err";
-      el.textContent = text || "";
-    }
-
-    function setOk(el, text) {
-      el.className = "msg-ok";
-      el.textContent = text || "";
-    }
-
-    async function verifyAdminAccess() {
-      const { data: { session }, error: sessErr } = await sb.auth.getSession();
-      if (sessErr || !session || !session.user) {
-        return { ok: false, reason: "" };
-      }
-
-      const { data: isAdminRpc, error: rpcErr } = await sb.rpc("is_admin");
-      if (!rpcErr && isAdminRpc === true) {
-        return { ok: true, user: session.user };
-      }
-
-      const { data: adminRow, error: tblErr } = await sb
-        .from("admins")
-        .select("*")
-        .limit(5);
-
-      if (!tblErr && Array.isArray(adminRow) && adminRow.length > 0) {
-        return { ok: true, user: session.user };
-      }
-
-      return {
-        ok: false,
-        reason: "الحساب مسجل لكن ليس لديه صلاحية أدمن في قاعدة البيانات."
-      };
-    }
-
-    async function showDashboard(user) {
-      loginView.classList.add("hidden");
-      dashboardView.classList.remove("hidden");
-      adminBadge.textContent = `مسجل كـ: ${user.email}`;
-      await loadAllData();
-    }
-
-    async function showLogin(msg = "") {
-      dashboardView.classList.add("hidden");
-      loginView.classList.remove("hidden");
-      setErr(loginMsg, msg);
-    }
-
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      setErr(loginMsg, "");
-      loginBtn.disabled = true;
-      loginBtn.textContent = "جاري الدخول...";
-
-      const email = document.getElementById("emailInput").value.trim();
-      const password = document.getElementById("passwordInput").value;
-
-      const { data, error } = await sb.auth.signInWithPassword({ email, password });
-
-      loginBtn.disabled = false;
-      loginBtn.textContent = "دخول";
-
-      if (error) {
-        setErr(loginMsg, `الدخول فشل: ${error.message}`);
-        return;
-      }
-
-      const check = await verifyAdminAccess();
-      if (!check.ok) {
-        await sb.auth.signOut();
-        setErr(loginMsg, check.reason || "غير مسموح بالدخول.");
-        return;
-      }
-
-      await showDashboard(data.user);
-    });
-
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await sb.auth.signOut();
-      await showLogin();
-    });
-
-    document.getElementById("refreshBtn").addEventListener("click", async () => {
-      await loadAllData();
-    });
-
-    // التبويبات
-    document.querySelectorAll(".tab-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
-        btn.classList.add("active");
-        const target = btn.dataset.tab;
-        document.querySelectorAll(".tab-panel").forEach((panel) => {
-          panel.classList.toggle("hidden", panel.id !== `tab-${target}`);
-        });
-      });
-    });
-
-    // رفع صورة إلى Bucket: products
-    async function uploadImageIfSelected(fileInput, folder = "items") {
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) return null;
-
-      const ext = file.name.split(".").pop() || "jpg";
-      const filePath = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-
-      const { error: upErr } = await sb.storage
-        .from(STORAGE_BUCKET)
-        .upload(filePath, file, { cacheControl: "3600", upsert: false });
-
-      if (upErr) {
-        throw new Error(`فشل رفع الصورة: ${upErr.message}`);
-      }
-
-      const { data: pubData } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(filePath);
-      return pubData?.publicUrl || null;
-    }
-
-    async function safeSelect(table) {
-      const { data, error } = await sb.from(table).select("*");
-      if (error) {
-        console.warn(`Table ${table} error:`, error.message);
-        return { rows: [], error: error.message };
-      }
-      return { rows: Array.isArray(data) ? data : [], error: null };
-    }
-
-    async function loadAllData() {
-      const [prodRes, ordRes, adsRes, revRes, setRes, stRes] = await Promise.all([
-        safeSelect("products"),
-        safeSelect("orders"),
-        safeSelect("ads"),
-        safeSelect("reviews"),
-        safeSelect("settings"),
-        safeSelect("stats")
-      ]);
-
-      document.getElementById("countProducts").textContent = prodRes.rows.length;
-      document.getElementById("countOrders").textContent = ordRes.rows.length;
-      document.getElementById("countAds").textContent = adsRes.rows.length;
-      document.getElementById("countReviews").textContent = revRes.rows.length;
-
-      renderProducts(prodRes.rows, prodRes.error);
-      renderOrders(ordRes.rows, ordRes.error);
-      renderAds(adsRes.rows, adsRes.error);
-      renderReviews(revRes.rows, revRes.error);
-      renderSettings(setRes.rows, setRes.error);
-      renderStats(stRes.rows, stRes.error);
-    }
-
-    function pickImageUrl(row) {
-      return row.image_url || row.image || row.img || row.photo_url || row.thumbnail || "";
-    }
-
-    function pickTitle(row, fallback = "عنصر") {
-      return row.name || row.title || row.product_name || row.customer_name || row.id || fallback;
-    }
-
-    function renderProducts(rows, err) {
-      const wrap = document.getElementById("productsList");
-      if (err) {
-        wrap.innerHTML = `<div class="msg-err">${escapeHtml(err)}</div>`;
-        return;
-      }
-      if (!rows.length) {
-        wrap.innerHTML = `<div class="item-meta">لا توجد منتجات مضافة بعد.</div>`;
-        return;
-      }
-      wrap.innerHTML = rows.map((p) => {
-        const img = pickImageUrl(p);
-        return `
-          <div class="list-item">
-            <div class="row-between">
-              <div style="display:flex;align-items:center;gap:10px;">
-                ${img ? `<img class="thumb" src="${escapeHtml(img)}" alt="" />` : ""}
-                <div>
-                  <strong>${escapeHtml(pickTitle(p, "منتج"))}</strong>
-                  <div class="item-meta">السعر: ${escapeHtml(p.price ?? "-")} | الفئة: ${escapeHtml(p.category || "-")}</div>
-                </div>
-              </div>
-              <button class="btn-danger" onclick="deleteRow('products', '${escapeHtml(p.id)}')">حذف</button>
-            </div>
-            ${p.description ? `<div class="item-meta">${escapeHtml(p.description)}</div>` : ""}
-          </div>
-        `;
-      }).join("");
-    }
-
-    document.getElementById("productForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const msgEl = document.getElementById("productMsg");
-      const btn = document.getElementById("addProductBtn");
-      setOk(msgEl, "");
-      btn.disabled = true;
-
-      try {
-        const fileInput = document.getElementById("prodImageFile");
-        const manualUrl = document.getElementById("prodImageUrl").value.trim();
-        const uploadedUrl = await uploadImageIfSelected(fileInput, "products");
-        const finalImg = uploadedUrl || manualUrl || null;
-
-        const payload = {
-          name: document.getElementById("prodName").value.trim(),
-          price: Number(document.getElementById("prodPrice").value),
-          category: document.getElementById("prodCategory").value.trim() || null,
-          description: document.getElementById("prodDesc").value.trim() || null
-        };
-
-        if (finalImg) {
-          payload.image_url = finalImg;
-        }
-
-        const { error } = await sb.from("products").insert(payload);
-        if (error) throw new Error(error.message);
-
-        e.target.reset();
-        setOk(msgEl, "تمت إضافة المنتج بنجاح.");
-        await loadAllData();
-      } catch (err) {
-        setErr(msgEl, err.message);
-      } finally {
-        btn.disabled = false;
-      }
-    });
-
-    function renderOrders(rows, err) {
-      const wrap = document.getElementById("ordersList");
-      if (err) {
-        wrap.innerHTML = `<div class="msg-err">${escapeHtml(err)}</div>`;
-        return;
-      }
-      if (!rows.length) {
-        wrap.innerHTML = `<div class="item-meta">لا توجد طلبات حتى الآن.</div>`;
-        return;
-      }
-      wrap.innerHTML = rows.map((o) => `
-        <div class="list-item">
-          <div class="row-between">
-            <strong>طلب #${escapeHtml(String(o.id).slice(0, 8))}</strong>
-            <span class="item-meta">الحالة: ${escapeHtml(o.status || "pending")}</span>
-          </div>
-          <div class="item-meta">العميل: ${escapeHtml(o.customer_name || o.phone || o.email || "-")} | الإجمالي: ${escapeHtml(o.total ?? o.amount ?? "-")}</div>
-          <div class="row-between">
-            <select onchange="updateOrderStatus('${escapeHtml(o.id)}', this.value)" style="max-width:200px;margin-bottom:0;">
-              <option value="pending" ${(o.status === "pending") ? "selected" : ""}>قيد الانتظار</option>
-              <option value="confirmed" ${(o.status === "confirmed") ? "selected" : ""}>مؤكد</option>
-              <option value="shipped" ${(o.status === "shipped") ? "selected" : ""}>تم الشحن</option>
-              <option value="delivered" ${(o.status === "delivered") ? "selected" : ""}>تم التسليم</option>
-              <option value="cancelled" ${(o.status === "cancelled") ? "selected" : ""}>ملغي</option>
-            </select>
-            <button class="btn-danger" onclick="deleteRow('orders', '${escapeHtml(o.id)}')">حذف</button>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    window.updateOrderStatus = async function(id, status) {
-      const { error } = await sb.from("orders").update({ status }).eq("id", id);
-      if (error) {
-        alert(`تعذر تحديث الحالة: ${error.message}`);
-      } else {
-        await loadAllData();
-      }
-    };
-
-    function renderAds(rows, err) {
-      const wrap = document.getElementById("adsList");
-      if (err) {
-        wrap.innerHTML = `<div class="msg-err">${escapeHtml(err)}</div>`;
-        return;
-      }
-      if (!rows.length) {
-        wrap.innerHTML = `<div class="item-meta">لا توجد إعلانات حالية.</div>`;
-        return;
-      }
-      wrap.innerHTML = rows.map((a) => {
-        const img = pickImageUrl(a);
-        return `
-          <div class="list-item">
-            <div class="row-between">
-              <div style="display:flex;align-items:center;gap:10px;">
-                ${img && img.startsWith("http") ? `<img class="thumb" src="${escapeHtml(img)}" alt="" />` : ""}
-                <div>
-                  <strong>${escapeHtml(pickTitle(a, "إعلان"))}</strong>
-                  ${img && !img.startsWith("http") ? `<div class="item-meta">${escapeHtml(img)}</div>` : ""}
-                </div>
-              </div>
-              <button class="btn-danger" onclick="deleteRow('ads', '${escapeHtml(a.id)}')">حذف</button>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    document.getElementById("adForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const msgEl = document.getElementById("adMsg");
-      setOk(msgEl, "");
-
-      try {
-        const fileInput = document.getElementById("adImageFile");
-        const extraVal = document.getElementById("adImageUrl").value.trim();
-        const uploadedUrl = await uploadImageIfSelected(fileInput, "ads");
-        const finalVal = uploadedUrl || extraVal || null;
-
-        const payload = {
-          title: document.getElementById("adTitle").value.trim()
-        };
-        if (finalVal) {
-          payload.image_url = finalVal;
-        }
-
-        const { error } = await sb.from("ads").insert(payload);
-        if (error) throw new Error(error.message);
-
-        e.target.reset();
-        setOk(msgEl, "تمت إضافة الإعلان.");
-        await loadAllData();
-      } catch (err) {
-        setErr(msgEl, err.message);
-      }
-    });
-
-    function renderReviews(rows, err) {
-      const wrap = document.getElementById("reviewsList");
-      if (err) {
-        wrap.innerHTML = `<div class="msg-err">${escapeHtml(err)}</div>`;
-        return;
-      }
-      if (!rows.length) {
-        wrap.innerHTML = `<div class="item-meta">لا توجد تقييمات حتى الآن.</div>`;
-        return;
-      }
-      wrap.innerHTML = rows.map((r) => `
-        <div class="list-item">
-          <div class="row-between">
-            <strong>${escapeHtml(r.user_name || r.customer_name || r.author || "عميل")}</strong>
-            <span class="item-meta">تقييم: ${escapeHtml(r.rating ?? "-")} ⭐</span>
-          </div>
-          <div class="item-meta">${escapeHtml(r.comment || r.review || r.message || JSON.stringify(r))}</div>
-          <div class="row-between">
-            <span class="item-meta">${escapeHtml(r.created_at || "")}</span>
-            <button class="btn-danger" onclick="deleteRow('reviews', '${escapeHtml(r.id)}')">حذف</button>
-          </div>
-        </div>
-      `).join("");
-    }
-
-    function renderSettings(rows, err) {
-      const wrap = document.getElementById("settingsList");
-      if (err) {
-        wrap.innerHTML = `<div class="msg-err">${escapeHtml(err)}</div>`;
-        return;
-      }
-      if (!rows.length) {
-        wrap.innerHTML = `<div class="item-meta">لا توجد صفوف في settings حالياً.</div>`;
-        return;
-      }
-      wrap.innerHTML = rows.map((s) => `
-        <div class="list-item">
-          <pre style="white-space:pre-wrap;font-size:0.82rem;color:var(--text);">${escapeHtml(JSON.stringify(s, null, 2))}</pre>
-        </div>
-      `).join("");
-    }
-
-    function renderStats(rows, err) {
-      const wrap = document.getElementById("statsList");
-      if (err) {
-        wrap.innerHTML = `<div class="msg-err">${escapeHtml(err)}</div>`;
-        return;
-      }
-      if (!rows.length) {
-        wrap.innerHTML = `<div class="item-meta">لا توجد سجلات في stats حالياً.</div>`;
-        return;
-      }
-      wrap.innerHTML = rows.slice(0, 20).map((st) => `
-        <div class="list-item">
-          <pre style="white-space:pre-wrap;font-size:0.82rem;color:var(--text);">${escapeHtml(JSON.stringify(st, null, 2))}</pre>
-        </div>
-      `).join("");
-    }
-
-    window.deleteRow = async function(table, id) {
-      if (!confirm("تأكيد حذف العنصر؟")) return;
-      const { error } = await sb.from(table).delete().eq("id", id);
-      if (error) {
-        alert(`فشل الحذف: ${error.message}`);
-      } else {
-        await loadAllData();
-      }
-    };
-
-    // فحص الجلسة عند الفتح
-    (async () => {
-      const check = await verifyAdminAccess();
-      if (check.ok) {
-        await showDashboard(check.user);
-      } else {
-        await showLogin(check.reason || "");
-      }
-    })();
-  </script>
+<div class="c" id="login">
+<h2>دخول الأدمن ⚙️</h2>
+<input id="em" type="email" placeholder="الإيميل" autocomplete="username">
+<input id="pw" type="password" placeholder="كلمة المرور" autocomplete="current-password">
+<button class="b" id="li">دخول</button>
+<p id="lm" style="color:#f87171;font-size:13px;margin-top:8px"></p>
+</div>
+
+<div id="panel" hidden>
+<div class="c"><div id="m"></div>
+<h2>📊 إحصائيات</h2>
+<div class="st"><div>الزيارات: <b id="sv">0</b></div><div>الطلبات: <b id="so">0</b></div><div>إجمالي المبيعات: <b id="sr">0</b> ج.م</div><div></div>
+<div style="width:100%">الأكثر مشاهدة: <b id="tv">—</b></div><div style="width:100%">الأكثر في المفضلة: <b id="tf">—</b></div></div></div>
+
+<div class="c"><h2>⚙️ إعدادات المتجر</h2>
+<label>رقم واتساب (بصيغة دولية 20xxxxxxxxxx)</label><input id="sw" inputmode="numeric">
+<label>عنوان البانر</label><input id="sbh"><label>نص البانر</label><input id="sbp">
+<label><input type="checkbox" id="sa">تشغيل الإعلانات</label>
+<button class="b" id="ss">حفظ الإعدادات</button></div>
+
+<div class="c"><h2 id="ft">إضافة منتج</h2>
+<label>اسم المنتج</label><input id="pn">
+<label>القسم</label><select id="pc"><option>هوديز</option><option>تيشيرتات</option><option>بناطيل</option><option>جواكت</option><option>أطقم</option></select>
+<label>السعر (جنيه)</label><input id="pp" type="number" inputmode="numeric">
+<label>الكمية المتاحة</label><input id="pst" type="number" inputmode="numeric" value="0">
+<label>المقاسات (مفصولة بفاصلة)</label><input id="psz" value="M,L,XL,XXL">
+<label>الألوان (اختياري، مفصولة بفاصلة)</label><input id="pcl">
+<label>الوصف</label><textarea id="pd" rows="2"></textarea>
+<label>صورة المنتج (ارفع من الموبايل)</label><input id="pf" type="file" accept="image/*">
+<label>أو رابط صورة</label><input id="pu" placeholder="https://...">
+<label><input type="checkbox" id="pfe">منتج مميز</label>
+<label><input type="checkbox" id="pac" checked>ظاهر للعملاء</label>
+<button class="b" id="add">حفظ المنتج</button>
+<button class="d" id="can" style="width:100%;margin-top:8px;padding:10px" hidden>إلغاء التعديل</button></div>
+
+<div class="c"><h2>المنتجات</h2><div id="pl"></div></div>
+
+<div class="c"><h2>📢 الإعلانات</h2>
+<label>العنوان</label><input id="at"><label>الوصف</label><input id="ad">
+<label>الرابط (https://...)</label><input id="au">
+<label>المكان</label><select id="apl"><option value="top">أعلى الصفحة الرئيسية</option><option value="feed">بين المنتجات</option></select>
+<button class="b" id="aadd">إضافة إعلان</button><div id="al" style="margin-top:10px"></div></div>
+
+<div class="c"><h2>🧾 الطلبات</h2><div id="ol"></div></div>
+<div class="c"><h2>⭐ التقييمات</h2><div id="rl"></div></div>
+<div class="c"><button class="d" id="lo" style="width:100%;padding:11px">تسجيل خروج</button></div>
+</div>
+
+<script>
+"use strict";
+const CFG={url:"https://uuffnrhsayengxplcusd.supabase.co",key:"sb_publishable_aW865zUIF9UR2JhZ5agGCw_W817LVaQ"};
+if(!window.supabase){document.body.innerHTML='<p style="padding:30px;text-align:center;color:#f87171">تعذّر تحميل مكتبة Supabase. افتح الصفحة من Chrome وانت متصل بالإنترنت.</p>';throw new Error("no supabase")}
+const sb=window.supabase.createClient(CFG.url,CFG.key);
+const $=i=>document.getElementById(i);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ST={new:"جديد",confirmed:"مؤكد",shipped:"اتشحن",done:"اتسلم",cancelled:"ملغي"};
+const list=s=>s.split(",").map(x=>x.trim()).filter(Boolean);
+let PL=[],editing=null;
+function msg(t,ok){const e=$("m");e.style.color=ok?"#4ade80":"#f87171";e.textContent=t}
+function show(on){$("login").hidden=on;$("panel").hidden=!on;if(on)loadAll()}
+function loadAll(){loadS();loadP();loadA();loadO();loadR()}
+async function loadR(){const r=await sb.from("reviews").select("*, products(name)").order("id",{ascending:false}).limit(40);
+$("rl").innerHTML=r.error?"تعذّر التحميل":(r.data||[]).map(x=>'<div class="r"><span>'+"★".repeat(x.rating)+' · '+esc(x.name||"زائر")+' · '+(x.products?esc(x.products.name):"المتجر")+(x.approved?"":" · مخفي")+(x.comment?'<br><small style="color:#9a9a9a">'+esc(x.comment)+'</small>':'')+'</span><span><button class="e" data-rv="'+x.id+'" data-v="'+(x.approved?0:1)+'">'+(x.approved?"إخفاء":"إظهار")+'</button> <button class="d" data-rd="'+x.id+'">حذف</button></span></div>').join("")||"لا يوجد تقييمات."}
+async function gate(){const r=await sb.rpc("is_admin");if(r.data===true)show(true);else{await sb.auth.signOut();show(false);$("lm").textContent="الحساب ده مش أدمن"}}
+document.addEventListener("click",async e=>{const d=e.target.dataset;
+if(d.rv){const r=await sb.from("reviews").update({approved:d.v==="1"}).eq("id",d.rv);if(r.error)msg(r.error.message,0);else loadR()}
+if(d.rd&&confirm("حذف التقييم؟")){const r=await sb.from("reviews").delete().eq("id",d.rd);if(r.error)msg(r.error.message,0);else loadR()}});
+async function loadS(){const r=await sb.from("settings").select("*"),m={};(r.data||[]).forEach(x=>{m[x.key]=x.value});
+$("sw").value=m.whatsapp||"";$("sa").checked=m.ads_enabled==="true";$("sbh").value=m.banner_title||"";$("sbp").value=m.banner_text||"";
+const v=await sb.from("stats").select("*").eq("key","visits");$("sv").textContent=v.data&&v.data[0]?v.data[0].value:0}
+$("ss").onclick=async()=>{const w=$("sw").value.trim().replace(/\D/g,"");
+if(!/^20\d{10}$/.test(w))return msg("رقم واتساب لازم يبدأ بـ 20 (مثال 201204064215)",0);
+const r=await sb.from("settings").upsert([{key:"whatsapp",value:w},{key:"ads_enabled",value:$("sa").checked?"true":"false"},{key:"banner_title",value:$("sbh").value.trim()},{key:"banner_text",value:$("sbp").value.trim()}]);
+msg(r.error?"خطأ: "+r.error.message:"تم حفظ الإعدادات ✓",!r.error)};
+async function loadP(){const r=await sb.from("products").select("*").order("id",{ascending:false});
+if(r.error){$("pl").textContent="تعذّر التحميل: "+r.error.message;return}PL=r.data||[];
+$("pl").innerHTML=PL.map(p=>'<div class="r"><span>'+esc(p.name)+' · '+esc(p.category_name)+' · '+Number(p.price)+' ج · مخزون '+Number(p.stock)+(p.active?"":" · مخفي")+'</span><span><button class="e" data-e="'+p.id+'">تعديل</button> <button class="d" data-d="'+p.id+'">حذف</button></span></div>').join("")||"لا يوجد منتجات.";
+const t=k=>PL.slice().sort((a,b)=>b[k]-a[k]).filter(p=>p[k]>0).slice(0,3).map(p=>esc(p.name)+" ("+p[k]+")").join("، ")||"—";
+$("tv").innerHTML=t("views");$("tf").innerHTML=t("favs")}
+function reset(){editing=null;["pn","pp","pd","pu","pcl"].forEach(i=>{$(i).value=""});$("pst").value="0";$("psz").value="M,L,XL,XXL";$("pf").value="";$("pfe").checked=false;$("pac").checked=true;$("ft").textContent="إضافة منتج";$("can").hidden=true}
+$("can").onclick=reset;
+$("add").onclick=async()=>{
+const name=$("pn").value.trim(),price=Number($("pp").value);
+if(!name||$("pp").value===""||!(price>=0))return msg("اكتب اسم المنتج والسعر",0);
+let url=$("pu").value.trim();const f=$("pf").files[0];$("add").disabled=true;
+if(f){const path=Date.now()+"-"+f.name.replace(/[^\w.-]/g,"_");const u=await sb.storage.from("products").upload(path,f);
+if(u.error){$("add").disabled=false;return msg("فشل رفع الصورة: "+u.error.message,0)}
+url=sb.storage.from("products").getPublicUrl(path).data.publicUrl}
+const o={name:name,category_name:$("pc").value,price:price,stock:parseInt($("pst").value||"0",10)||0,sizes:list($("psz").value),colors:list($("pcl").value),description:$("pd").value.trim(),image_url:url,featured:$("pfe").checked,active:$("pac").checked};
+if(!o.sizes.length)o.sizes=["M","L","XL","XXL"];
+const r=editing?await sb.from("products").update(o).eq("id",editing):await sb.from("products").insert([o]);
+$("add").disabled=false;
+if(r.error)return msg("خطأ: "+r.error.message,0);
+msg("تم الحفظ ✓",1);reset();loadP()};
+async function loadA(){const r=await sb.from("ads").select("*").order("id",{ascending:false});
+$("al").innerHTML=r.error?"تعذّر التحميل":(r.data||[]).map(a=>'<div class="r"><span>'+esc(a.title)+' · '+(a.placement==="top"?"أعلى":"وسط")+' · ظهور '+a.impressions+' · نقرات '+a.clicks+(a.active?"":" · موقوف")+'</span><span><button class="e" data-at="'+a.id+'" data-v="'+(a.active?0:1)+'">'+(a.active?"إيقاف":"تشغيل")+'</button> <button class="d" data-ad="'+a.id+'">حذف</button></span></div>').join("")||"لا يوجد إعلانات."}
+$("aadd").onclick=async()=>{const t=$("at").value.trim(),u=$("au").value.trim();
+if(!t||!/^https:\/\//.test(u))return msg("اكتب عنوان ورابط يبدأ بـ https://",0);
+const r=await sb.from("ads").insert([{title:t,description:$("ad").value.trim(),url:u,placement:$("apl").value,active:true}]);
+if(r.error)return msg("خطأ: "+r.error.message,0);$("at").value=$("ad").value=$("au").value="";loadA()};
+async function loadO(){const r=await sb.from("orders").select("*").order("created_at",{ascending:false}).limit(50);
+if(r.error){$("ol").textContent="تعذّر التحميل";return}const D=r.data||[];
+let rev=0;D.forEach(o=>{if(o.status!=="cancelled")rev+=Number(o.total)||0});$("so").textContent=D.length;$("sr").textContent=rev;
+$("ol").innerHTML=D.map(o=>{const it=(o.items||[]).map(i=>esc(i.name)+" ("+esc(i.size)+(i.color?"/"+esc(i.color):"")+")×"+Number(i.qty)).join("، ");
+return '<div class="o"><b>'+esc(o.name)+'</b> · <a href="tel:'+esc(o.phone)+'">'+esc(o.phone)+'</a> · <a target="_blank" rel="noopener" href="https://wa.me/2'+esc(o.phone)+'">واتساب</a><small>'+esc(o.address)+'</small><small>'+it+'</small><small>'+esc(o.payment_method)+' · '+Number(o.total)+' ج.م</small><select data-s="'+o.id+'" style="margin:8px 0 0">'+Object.keys(ST).map(k=>'<option value="'+k+'"'+(o.status===k?" selected":"")+'>'+ST[k]+'</option>').join("")+'</select></div>'}).join("")||"لا يوجد طلبات."}
+$("li").onclick=async()=>{$("lm").textContent="";const r=await sb.auth.signInWithPassword({email:$("em").value.trim(),password:$("pw").value});
+if(r.error)$("lm").textContent="الدخول فشل: "+r.error.message;else{$("pw").value="";gate()}};
+$("lo").onclick=async()=>{await sb.auth.signOut();show(false)};
+document.addEventListener("click",async e=>{const d=e.target.dataset;
+if(d.e){const p=PL.find(x=>x.id==d.e);if(!p)return;editing=p.id;$("pn").value=p.name;$("pc").value=p.category_name;$("pp").value=p.price;$("pst").value=p.stock;$("psz").value=(p.sizes||[]).join(",");$("pcl").value=(p.colors||[]).join(",");$("pd").value=p.description||"";$("pu").value=p.image_url||"";$("pfe").checked=!!p.featured;$("pac").checked=!!p.active;$("ft").textContent="تعديل منتج";$("can").hidden=false;scrollTo(0,0)}
+if(d.d&&confirm("حذف المنتج؟")){const r=await sb.from("products").delete().eq("id",d.d);if(r.error)msg(r.error.message,0);else loadP()}
+if(d.at){const r=await sb.from("ads").update({active:d.v==="1"}).eq("id",d.at);if(r.error)msg(r.error.message,0);else loadA()}
+if(d.ad&&confirm("حذف الإعلان؟")){const r=await sb.from("ads").delete().eq("id",d.ad);if(r.error)msg(r.error.message,0);else loadA()}});
+document.addEventListener("change",async e=>{const s=e.target.dataset.s;
+if(s){const r=await sb.from("orders").update({status:e.target.value}).eq("id",s);if(r.error)msg(r.error.message,0);else loadO()}});
+sb.auth.getSession().then(r=>{if(r.data&&r.data.session)gate();else show(false)});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
 </body>
 </html>
