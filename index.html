@@ -94,7 +94,7 @@ footer{text-align:center;color:var(--mut);font-size:12px;padding:24px 0}footer a
 <input id="nm" placeholder="الاسم بالكامل" autocomplete="name">
 <input id="ph" type="tel" placeholder="رقم الموبايل (01xxxxxxxxx)" autocomplete="tel">
 <input id="ad" placeholder="العنوان بالتفصيل / المحافظة" autocomplete="street-address">
-<select id="pay"><option value="cod">الدفع عند الاستلام</option><option value="vf">فودافون كاش</option><option value="ip">انستا باي</option></select>
+<select id="pay"><option value="cod">الدفع عند الاستلام</option><option value="vf">فودافون كاش</option></select>
 <div class="note" id="pn"></div>
 <button class="btn" id="go">تأكيد الطلب وإرساله على واتساب 📲</button>
 <a class="btn wa" id="wal" target="_blank" rel="noopener">اضغط هنا لو واتساب ما فتحش</a>
@@ -108,7 +108,7 @@ footer{text-align:center;color:var(--mut);font-size:12px;padding:24px 0}footer a
 const CFG={
 url:"https://uuffnrhsayengxplcusd.supabase.co",
 key:"sb_publishable_aW865zUIF9UR2JhZ5agGCw_W817LVaQ",
-vodafone:"01204064215",instapay:"midosr4@instapay",
+vodafone:"01204064215",
 ig:"https://instagram.com/midosr4",fb:"https://facebook.com/midosr4",tt:"https://tiktok.com/@midosr4"};
 const $=i=>document.getElementById(i);
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -121,6 +121,20 @@ let S={whatsapp:"201204064215",ads_enabled:"true",banner_title:"ستريت وي�
 let P=[],ADS=[],cart=ld("msn_cart"),fav=ld("msn_fav"),cat="",onlyFav=false,cur=null,sz="",cl="",qty=1,U=null,AR=[],RT={},R=null,ORD=ld("msn_orders");
 const tot=()=>cart.reduce((s,i)=>s+i.price*i.qty,0);
 const sizes=p=>p.sizes&&p.sizes.length?p.sizes:["M","L","XL","XXL"];
+function sizePrice(p,s){
+  const base=Number(p.price)||0;
+  let sp=p.size_prices;
+  if(typeof sp==="string"){try{sp=JSON.parse(sp)}catch(e){sp=null}}
+  if(sp&&typeof sp==="object"&&s&&sp[s]!=null&&sp[s]!==""&&!isNaN(Number(sp[s]))){
+    return Number(sp[s]);
+  }
+  return base;
+}
+function minPrice(p){
+  const sl=sizes(p);
+  const ps=sl.map(s=>sizePrice(p,s));
+  return ps.length?Math.min.apply(null,ps):(Number(p.price)||0);
+}
 const stock=p=>p.stock==null?99:p.stock;
 function toast(m){const e=$("t");e.textContent=m;e.className="on";setTimeout(()=>e.className="",2600)}
 const img=p=>/^https?:\/\//.test(p.image_url||"")?'<img loading="lazy" src="'+esc(p.image_url)+'" alt="'+esc(p.name)+'">':'<span>'+(EM[p.category_name]||"🛍️")+'</span>';
@@ -129,9 +143,16 @@ return '<a class="ad" data-k="adc" data-i="'+a.id+'" href="'+esc(a.url)+'" targe
 const adOf=pl=>S.ads_enabled==="true"?ADS.filter(a=>a.placement===pl)[0]:null;
 function chips(){$("chips").innerHTML=["الكل"].concat(CATS).map(c=>'<button class="chip'+((c==="الكل"?!cat:cat===c)?" on":"")+'" data-k="cat" data-v="'+c+'">'+c+'</button>').join("")}
 function list(){const q=$("q").value.trim().toLowerCase(),s=$("so").value,f=$("pf").value;
-const l=P.filter(p=>(!cat||p.category_name===cat)&&(!onlyFav||fav.includes(p.id))&&(!q||(p.name+" "+(p.description||"")).toLowerCase().includes(q))&&(!f||(f==="hi"?p.price>500:p.price<=+f)));
-if(s==="lo")l.sort((a,b)=>a.price-b.price);if(s==="hi")l.sort((a,b)=>b.price-a.price);return l}
-function card(p){return '<div class="pc" data-k="open" data-i="'+p.id+'"><button class="hb" data-k="fav" data-i="'+p.id+'" aria-label="مفضلة">'+(fav.includes(p.id)?"❤️":"🤍")+'</button>'+(stock(p)<=0?'<span class="tag">نفد</span>':'')+'<div class="pi">'+img(p)+'</div><div class="pn">'+esc(p.name)+'</div><div class="pk">'+esc(p.category_name)+'</div>'+(RT[p.id]?'<div class="rt">★ '+RT[p.id].avg+' ('+RT[p.id].n+')</div>':'')+'<div class="pr">'+Number(p.price)+' ج.م</div></div>'}
+const l=P.filter(p=>{
+  const pr=minPrice(p);
+  return (!cat||p.category_name===cat)&&(!onlyFav||fav.includes(p.id))&&(!q||(p.name+" "+(p.description||"")).toLowerCase().includes(q))&&(!f||(f==="hi"?pr>500:pr<=+f));
+});
+if(s==="lo")l.sort((a,b)=>minPrice(a)-minPrice(b));if(s==="hi")l.sort((a,b)=>minPrice(b)-minPrice(a));return l}
+function card(p){
+  const sl=sizes(p),ps=sl.map(s=>sizePrice(p,s)),mn=Math.min.apply(null,ps),mx=Math.max.apply(null,ps);
+  const pt=mn===mx?(mn+" ج.م"):(mn+" - "+mx+" ج.م");
+  return '<div class="pc" data-k="open" data-i="'+p.id+'"><button class="hb" data-k="fav" data-i="'+p.id+'" aria-label="مفضلة">'+(fav.includes(p.id)?"❤️":"🤍")+'</button>'+(stock(p)<=0?'<span class="tag">نفد</span>':'')+'<div class="pi">'+img(p)+'</div><div class="pn">'+esc(p.name)+'</div><div class="pk">'+esc(p.category_name)+'</div>'+(RT[p.id]?'<div class="rt">★ '+RT[p.id].avg+' ('+RT[p.id].n+')</div>':'')+'<div class="pr">'+pt+'</div></div>'
+}
 function render(){chips();const l=list(),home=!cat&&!onlyFav&&!$("q").value&&!$("pf").value;let r="";
 if(home){const ft=P.filter(p=>p.featured).slice(0,6),vw=P.filter(p=>p.views>0).sort((a,b)=>b.views-a.views).slice(0,6);
 if(ft.length)r+='<div class="sec">⭐ منتجات مميزة</div><div class="rail">'+ft.map(card).join("")+'</div>';
@@ -142,11 +163,13 @@ const a=adOf("feed");
 $("g").innerHTML=l.length?l.map((p,i)=>card(p)+(i===3&&a&&home?'<div class="span">'+adHtml(a)+'</div>':"")).join(""):'<p class="em">'+(P.length?"مفيش منتجات مطابقة.":"المتجر قيد التجهيز، منتجات جديدة قريبًا.")+'</p>';
 $("revs").innerHTML=home&&AR.length?'<div class="sec">💬 آراء العملاء</div>'+AR.map(rvHtml).join(""):"";$("nf").className=onlyFav?"on":""}
 function upd(){const n=cart.reduce((s,i)=>s+i.qty,0);$("cb").style.display=n?"block":"none";$("cb").textContent=n}
-function pm(){const p=cur,C=p.colors||[],st=stock(p);
-$("pm").innerHTML='<h3><span>'+esc(p.name)+'</span><button class="x" data-k="close">✕</button></h3><div class="big">'+img(p)+'</div><div class="pr" style="font-size:20px;padding:0">'+Number(p.price)+' ج.م</div>'+(st<=0?'<div class="out">نفد المخزون</div>':st<=5?'<div class="low">متبقي '+st+' قطع فقط</div>':'')+'<p style="color:#bbb;font-size:13px;margin:8px 0">'+esc(p.description||"")+'</p><b style="font-size:13px">المقاس</b><div class="row">'+sizes(p).map(s=>'<button class="z'+(s===sz?" on":"")+'" data-k="sz" data-v="'+esc(s)+'">'+esc(s)+'</button>').join("")+'</div>'+(C.length?'<b style="font-size:13px">اللون</b><div class="row">'+C.map(c=>'<button class="z'+(c===cl?" on":"")+'" data-k="cl" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>':'')+'<div class="row q"><b style="font-size:13px">الكمية</b><button data-k="qd">−</button><b>'+qty+'</b><button data-k="qi">+</button></div><button class="btn" data-k="add"'+(st<=0?" disabled":"")+'>أضف للسلة · '+Number(p.price)*qty+' ج.م</button><div id="prv">'+(PRV[p.id]||"")+'</div>'}
+function pm(){
+  const p=cur,C=p.colors||[],st=stock(p),unit=sizePrice(p,sz);
+  $("pm").innerHTML='<h3><span>'+esc(p.name)+'</span><button class="x" data-k="close">✕</button></h3><div class="big">'+img(p)+'</div><div class="pr" style="font-size:20px;padding:0">'+unit+' ج.م</div>'+(st<=0?'<div class="out">نفد المخزون</div>':st<=5?'<div class="low">متبقي '+st+' قطع فقط</div>':'')+'<p style="color:#bbb;font-size:13px;margin:8px 0">'+esc(p.description||"")+'</p><b style="font-size:13px">المقاس</b><div class="row">'+sizes(p).map(s=>'<button class="z'+(s===sz?" on":"")+'" data-k="sz" data-v="'+esc(s)+'">'+esc(s)+' ('+sizePrice(p,s)+')</button>').join("")+'</div>'+(C.length?'<b style="font-size:13px">اللون</b><div class="row">'+C.map(c=>'<button class="z'+(c===cl?" on":"")+'" data-k="cl" data-v="'+esc(c)+'">'+esc(c)+'</button>').join("")+'</div>':'')+'<div class="row q"><b style="font-size:13px">الكمية</b><button data-k="qd">−</button><b>'+qty+'</b><button data-k="qi">+</button></div><button class="btn" data-k="add"'+(st<=0?" disabled":"")+'>أضف للسلة · '+unit*qty+' ج.م</button><div id="prv">'+(PRV[p.id]||"")+'</div>'
+}
 function drawCart(){$("ci").innerHTML=cart.length?cart.map((i,k)=>'<div class="ci"><div><b>'+esc(i.name)+'</b><br><small>مقاس '+esc(i.size)+(i.color?' · '+esc(i.color):'')+' · '+i.price+' ج.م</small></div><div class="q"><button data-k="cd" data-i="'+k+'">−</button><b>'+i.qty+'</b><button data-k="cu" data-i="'+k+'">+</button></div></div>').join(""):'<p class="em" style="padding:20px 0">السلة فاضية.</p>';
 $("tt").textContent="الإجمالي: "+tot()+" ج.م (الشحن بيتحدد عند التأكيد)"}
-function payNote(){const v=$("pay").value;$("pn").textContent=v==="cod"?"هتدفع للمندوب لما تستلم طلبك.":v==="vf"?"حوّل المبلغ على "+CFG.vodafone+" وابعت صورة التحويل على واتساب.":"حوّل على "+CFG.instapay+" وابعت صورة التحويل على واتساب."}
+function payNote(){const v=$("pay").value;$("pn").textContent=v==="cod"?"هتدفع للمندوب لما تستلم طلبك.":"حوّل المبلغ على "+CFG.vodafone+" وابعت صورة التحويل على واتساب."}
 const uid=()=>window.crypto&&crypto.randomUUID?crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==="x"?r:r&3|8).toString(16)});
 const uname=()=>U&&U.user_metadata&&(U.user_metadata.full_name||U.user_metadata.name)||"";
 const stars=(t,n)=>'<div class="stars">'+[1,2,3,4,5].map(v=>'<button data-k="st" data-t="'+t+'" data-v="'+v+'" class="'+(v<=n?"on":"")+'">★</button>').join("")+'</div>';
@@ -189,7 +212,13 @@ else if(k==="sz"){sz=v;pm()}
 else if(k==="cl"){cl=v;pm()}
 else if(k==="qd"){qty=Math.max(1,qty-1);pm()}
 else if(k==="qi"){qty=Math.min(10,stock(cur),qty+1);pm()}
-else if(k==="add"){const f=cart.find(c=>c.id===cur.id&&c.size===sz&&c.color===cl);if(f)f.qty=Math.min(10,f.qty+qty);else cart.push({id:cur.id,name:cur.name,price:Number(cur.price),size:sz,color:cl,qty:qty});saveCart();$("s1").classList.remove("on");toast("اتضاف للسلة ✓")}
+else if(k==="add"){
+  const unitPrice=sizePrice(cur,sz);
+  const f=cart.find(c=>c.id===cur.id&&c.size===sz&&c.color===cl&&c.price===unitPrice);
+  if(f)f.qty=Math.min(10,f.qty+qty);
+  else cart.push({id:cur.id,name:cur.name,price:unitPrice,size:sz,color:cl,qty:qty});
+  saveCart();$("s1").classList.remove("on");toast("اتضاف للسلة ✓")
+}
 else if(k==="acc"){acc();$("s3").classList.add("on")}
 else if(k==="login"){sb.auth.signInWithOAuth({provider:"google",options:{redirectTo:location.origin+location.pathname}})}
 else if(k==="logout"){sb.auth.signOut().then(()=>{U=null;acc()})}
@@ -210,7 +239,7 @@ const n=$("nm").value.trim(),ph=$("ph").value.trim(),ad=$("ad").value.trim(),pay
 if(n.length<2)return toast("اكتب اسمك");
 if(!/^01[0125]\d{8}$/.test(ph))return toast("رقم الموبايل غير صحيح");
 if(ad.length<8)return toast("اكتب العنوان بالتفصيل");
-const PAY={cod:"الدفع عند الاستلام",vf:"فودافون كاش",ip:"انستا باي"}[pay],items=cart.slice(),total=tot(),tk=uid();
+const PAY={cod:"الدفع عند الاستلام",vf:"فودافون كاش"}[pay]||"الدفع عند الاستلام",items=cart.slice(),total=tot(),tk=uid();
 const m="🔥 طلب جديد من MSN 🔥\n👤 "+n+"\n📞 "+ph+"\n📍 "+ad+"\n💳 "+PAY+"\n\n"+items.map((i,k)=>(k+1)+". "+i.name+" — "+i.size+(i.color?" / "+i.color:"")+" × "+i.qty+" = "+i.price*i.qty+" ج.م").join("\n")+"\n\n💰 الإجمالي: "+total+" ج.م (غير شامل الشحن)";
 const a=$("wal");a.href="https://wa.me/"+S.whatsapp+"?text="+encodeURIComponent(m);a.style.display="block";a.click();
 if(sb)sb.from("orders").insert({name:n,phone:ph,address:ad,payment_method:PAY,items:items,total:total,status:"new",token:tk}).then(r=>toast(r.error?"اتفتح واتساب بس: ابعت الرسالة عشان الطلب يوصل":"الطلب اتسجّل ✓ ابعت رسالة واتساب للتأكيد"),()=>toast("اتفتح واتساب بس: ابعت الرسالة عشان الطلب يوصل"));
